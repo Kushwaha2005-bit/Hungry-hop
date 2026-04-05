@@ -2,7 +2,7 @@
 // Replaces the mock DB with real backend calls
 // Usage: import { api } from './api.js'
 
-const BASE = '/api';// Change to your deployed URL in production
+const BASE = 'https://hungry-b4h904omc-kushwaha2005-bits-projects.vercel.app/api';// Change to your deployed URL in production
 
 // ─── Token helpers ───────────────────────────────────────────
 export const token = {
