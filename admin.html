@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HungryHop Admin Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f4f6f9;
+      --color-background-info: #eff6ff;
+      --color-text-primary: #111827;
+      --color-text-secondary: #6b7280;
+      --color-text-tertiary: #9ca3af;
+      --color-border-secondary: #e5e7eb;
+      --color-border-tertiary: #f3f4f6;
+      --color-border-info: #bfdbfe;
+      --sidebar-width: 200px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-background-primary: #111827;
+        --color-background-secondary: #1f2937;
+        --color-background-info: #1e3a5f;
+        --color-text-primary: #f9fafb;
+        --color-text-secondary: #9ca3af;
+        --color-text-tertiary: #6b7280;
+        --color-border-secondary: #374151;
+        --color-border-tertiary: #1f2937;
+        --color-border-info: #2563eb;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      min-height: 100vh;
+    }
+
+    #root {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    button {
+      font-family: var(--font-sans);
+      cursor: pointer;
+      border: 0.5px solid var(--color-border-secondary);
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.8; }
+
+    input, select {
+      font-family: var(--font-sans);
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      border: 0.5px solid var(--color-border-secondary);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: #3b82f6;
+    }
+
+    table { font-family: var(--font-sans); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    const DB = (() => {
+      const store = {
+        users: [
+          { id: 1, name: "Priya Sharma", email: "priya@example.com", phone: "9876543210", joined: "2024-01-15", orders: 24, spent: 8640, status: "active" },
+          { id: 2, name: "Rahul Mehta", email: "rahul@example.com", phone: "9876543211", joined: "2024-02-08", orders: 17, spent: 5320, status: "active" },
+          { id: 3, name: "Ananya Singh", email: "ananya@example.com", phone: "9876543212", joined: "2024-03-22", orders: 9, spent: 2870, status: "active" },
+          { id: 4, name: "Karan Patel", email: "karan@example.com", phone: "9876543213", joined: "2024-04-10", orders: 31, spent: 11200, status: "vip" },
+          { id: 5, name: "Meera Nair", email: "meera@example.com", phone: "9876543214", joined: "2024-05-01", orders: 6, spent: 1840, status: "inactive" },
+        ],
+        orders: [
+          { id: "HH-2024-0042", userId: 1, userName: "Priya Sharma", items: "Margherita Pizza, Mango Smoothie", total: 438, status: "delivered", time: "2025-04-04 14:22", address: "12, Andheri West, Mumbai", eta: "Delivered", payment: "online" },
+          { id: "HH-2024-0041", userId: 2, userName: "Rahul Mehta", items: "Chicken Burger x2, Cold Coffee", total: 517, status: "out-for-delivery", time: "2025-04-05 09:15", address: "45, Koregaon Park, Pune", eta: "18 mins", payment: "cod" },
+          { id: "HH-2024-0040", userId: 4, userName: "Karan Patel", items: "Dragon Roll, Salmon Sushi Roll", total: 888, status: "preparing", time: "2025-04-05 09:45", address: "7, CG Road, Ahmedabad", eta: "32 mins", payment: "online" },
+          { id: "HH-2024-0039", userId: 3, userName: "Ananya Singh", items: "Tiramisu, Oreo Cheesecake", total: 378, status: "confirmed", time: "2025-04-05 10:02", address: "22, Lajpat Nagar, Delhi", eta: "40 mins", payment: "online" },
+          { id: "HH-2024-0038", userId: 5, userName: "Meera Nair", items: "Caesar Salad, Watermelon Cooler", total: 328, status: "delivered", time: "2025-04-03 13:10", address: "8, Indiranagar, Bangalore", eta: "Delivered", payment: "cod" },
+          { id: "HH-2024-0037", userId: 1, userName: "Priya Sharma", items: "BBQ Chicken Pizza", total: 389, status: "cancelled", time: "2025-04-02 20:00", address: "12, Andheri West, Mumbai", eta: "-", payment: "online" },
+        ],
+        addresses: [
+          { id: 1, userId: 1, label: "Home", line1: "Flat 12B, Shree Apartment", line2: "Andheri West", city: "Mumbai", pincode: "400053", lat: 19.1362, lng: 72.8296, isDefault: true, deliveryNotes: "Ring bell twice" },
+          { id: 2, userId: 1, label: "Work", line1: "Floor 4, Tech Park", line2: "BKC", city: "Mumbai", pincode: "400051", lat: 19.0596, lng: 72.8656, isDefault: false, deliveryNotes: "Leave at reception" },
+          { id: 3, userId: 2, label: "Home", line1: "45, Koregaon Park", line2: "Lane 5", city: "Pune", pincode: "411001", lat: 18.5362, lng: 73.8932, isDefault: true, deliveryNotes: "" },
+          { id: 4, userId: 4, label: "Home", line1: "7, CG Road", line2: "Navrangpura", city: "Ahmedabad", pincode: "380009", lat: 23.0225, lng: 72.5714, isDefault: true, deliveryNotes: "Call before arrival" },
+        ],
+        restaurants: [
+          { id: 1, name: "Pizza Palace", cuisine: "Italian", rating: 4.8, orders: 1240, revenue: 89000, status: "open", city: "Mumbai" },
+          { id: 2, name: "Burger Barn", cuisine: "American", rating: 4.7, orders: 980, revenue: 67000, status: "open", city: "Pune" },
+          { id: 3, name: "Sushi Sky", cuisine: "Japanese", rating: 4.9, orders: 756, revenue: 112000, status: "open", city: "Mumbai" },
+          { id: 4, name: "Green Garden", cuisine: "Healthy", rating: 4.6, orders: 530, revenue: 41000, status: "open", city: "Delhi" },
+          { id: 5, name: "Sweet Cravings", cuisine: "Desserts", rating: 4.8, orders: 890, revenue: 58000, status: "closed", city: "Bangalore" },
+        ],
+      };
+      return {
+        getStats: () => ({
+          totalRevenue: store.orders.filter(o => o.status === "delivered").reduce((s, o) => s + o.total, 0),
+          todayOrders: store.orders.filter(o => o.time.startsWith("2025-04-05")).length,
+          activeUsers: store.users.filter(u => u.status !== "inactive").length,
+          avgDelivery: "28 mins",
+          pendingOrders: store.orders.filter(o => ["confirmed","preparing","out-for-delivery"].includes(o.status)).length,
+        }),
+        getOrders: () => [...store.orders],
+        getUsers: () => [...store.users],
+        getAddresses: (userId) => userId ? store.addresses.filter(a => a.userId === userId) : [...store.addresses],
+        getRestaurants: () => [...store.restaurants],
+        addAddress: (addr) => {
+          const newAddr = { ...addr, id: Date.now() };
+          if (newAddr.isDefault) store.addresses.filter(a => a.userId === addr.userId).forEach(a => a.isDefault = false);
+          store.addresses.push(newAddr);
+          return newAddr;
+        },
+        updateAddress: (id, data) => {
+          const idx = store.addresses.findIndex(a => a.id === id);
+          if (idx > -1) {
+            if (data.isDefault) store.addresses.filter(a => a.userId === store.addresses[idx].userId).forEach(a => a.isDefault = false);
+            store.addresses[idx] = { ...store.addresses[idx], ...data };
+          }
+        },
+        deleteAddress: (id) => {
+          const idx = store.addresses.findIndex(a => a.id === id);
+          if (idx > -1) store.addresses.splice(idx, 1);
+        },
+        updateOrderStatus: (id, status) => {
+          const o = store.orders.find(o => o.id === id);
+          if (o) o.status = status;
+        },
+      };
+    })();
+
+    const STATUS_COLORS = {
+      delivered: { bg: "#e6f4ea", text: "#2d7a3a", label: "Delivered" },
+      "out-for-delivery": { bg: "#e3f0fb", text: "#1565c0", label: "On the way" },
+      preparing: { bg: "#fff8e1", text: "#b45309", label: "Preparing" },
+      confirmed: { bg: "#f3e8ff", text: "#7c3aed", label: "Confirmed" },
+      cancelled: { bg: "#fce8e8", text: "#b91c1c", label: "Cancelled" },
+      open: { bg: "#e6f4ea", text: "#2d7a3a", label: "Open" },
+      closed: { bg: "#fce8e8", text: "#b91c1c", label: "Closed" },
+      active: { bg: "#e3f0fb", text: "#1565c0", label: "Active" },
+      vip: { bg: "#f3e8ff", text: "#7c3aed", label: "VIP" },
+      inactive: { bg: "#f5f5f5", text: "#6b7280", label: "Inactive" },
+    };
+
+    function Badge({ status }) {
+      const s = STATUS_COLORS[status] || { bg: "#f5f5f5", text: "#6b7280", label: status };
+      return (
+        <span style={{ background: s.bg, color: s.text, borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 500, whiteSpace: "nowrap" }}>
+          {s.label}
+        </span>
+      );
+    }
+
+    function MapCanvas({ order, address }) {
+      const canvasRef = useRef(null);
+      const animRef = useRef(null);
+
+      useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const W = canvas.width = canvas.offsetWidth * window.devicePixelRatio || 600;
+        const H = canvas.height = 280 * window.devicePixelRatio || 280;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        const w = W / window.devicePixelRatio, h = H / window.devicePixelRatio;
+
+        const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const bg = isDark ? "#16161f" : "#f0f4f8";
+        const road = isDark ? "#23232e" : "#d1dae6";
+        const routeColor = "#3b82f6";
+        const buildingColor = isDark ? "#1c1c28" : "#dce4ef";
+
+        const destX = w * 0.75, destY = h * 0.25;
+        const restX = w * 0.2, restY = h * 0.75;
+        const cpX = w * 0.5, cpY = h * 0.45;
+
+        const progress = order?.status === "delivered" ? 1 : order?.status === "out-for-delivery" ? 0.6 : order?.status === "preparing" ? 0.25 : 0.05;
+        let t = progress;
+
+        function quadratic(t, p0, p1, p2) {
+          return { x: (1-t)**2*p0.x + 2*(1-t)*t*p1.x + t**2*p2.x, y: (1-t)**2*p0.y + 2*(1-t)*t*p1.y + t**2*p2.y };
+        }
+
+        const buildings = [
+          [0.05,0.08,0.1,0.22],[0.22,0.04,0.08,0.28],[0.45,0.06,0.09,0.2],[0.63,0.04,0.1,0.25],[0.83,0.07,0.1,0.18],
+          [0.05,0.62,0.09,0.3],[0.52,0.58,0.12,0.36],[0.73,0.62,0.1,0.3],
+        ];
+
+        function roundRect(ctx, x, y, w, h, r) {
+          ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+          ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+          ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+          ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+          ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, w, h);
+          ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+          ctx.fillStyle = buildingColor;
+          buildings.forEach(([x,y,bw,bh]) => ctx.fillRect(x*w, y*h, bw*w, bh*h));
+
+          ctx.strokeStyle = road; ctx.lineWidth = 22; ctx.lineCap = "round";
+          ctx.beginPath(); ctx.moveTo(0, h*0.5); ctx.lineTo(w, h*0.5); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(w*0.5, 0); ctx.lineTo(w*0.5, h); ctx.stroke();
+          ctx.lineWidth = 16;
+          ctx.beginPath(); ctx.moveTo(restX, restY); ctx.quadraticCurveTo(cpX, cpY, destX, destY); ctx.stroke();
+
+          ctx.strokeStyle = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+          ctx.lineWidth = 1.5; ctx.setLineDash([10,8]);
+          ctx.beginPath(); ctx.moveTo(0, h*0.5); ctx.lineTo(w, h*0.5); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(w*0.5, 0); ctx.lineTo(w*0.5, h); ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.strokeStyle = routeColor + "88"; ctx.lineWidth = 2.5; ctx.setLineDash([7,5]);
+          ctx.beginPath(); ctx.moveTo(restX, restY); ctx.quadraticCurveTo(cpX, cpY, destX, destY); ctx.stroke();
+          ctx.setLineDash([]);
+
+          const rPos = quadratic(Math.min(t, 1), {x:restX,y:restY}, {x:cpX,y:cpY}, {x:destX,y:destY});
+
+          const ping = 18 + 5 * Math.sin(Date.now()/300);
+          ctx.beginPath(); ctx.arc(rPos.x, rPos.y, ping, 0, Math.PI*2);
+          ctx.fillStyle = routeColor + "22"; ctx.fill();
+
+          ctx.fillStyle = "#22c55e";
+          ctx.beginPath(); ctx.arc(restX, restY, 10, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)";
+          ctx.font = "10px sans-serif"; ctx.textAlign = "center";
+          ctx.fillText("Restaurant", restX, restY + 22);
+
+          ctx.fillStyle = "#ef4444";
+          ctx.beginPath(); ctx.arc(destX, destY, 10, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)";
+          ctx.font = "10px sans-serif"; ctx.textAlign = "center";
+          const addrLabel = address ? `${address.label || "Home"}` : "Delivery";
+          ctx.fillText(addrLabel, destX, destY + 22);
+
+          ctx.fillStyle = routeColor;
+          ctx.beginPath(); ctx.arc(rPos.x, rPos.y, 12, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = "#fff"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
+          ctx.fillText("🛵", rPos.x, rPos.y + 4);
+
+          const etaText = order?.eta || "~25 mins";
+          ctx.fillStyle = isDark ? "#1e1e2e" : "#fff";
+          ctx.strokeStyle = routeColor + "88"; ctx.lineWidth = 1.5;
+          const tw = Math.max(60, ctx.measureText(etaText).width + 20);
+          roundRect(ctx, rPos.x - tw/2, rPos.y - 40, tw, 20, 6);
+          ctx.fill(); ctx.stroke();
+          ctx.fillStyle = routeColor; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center";
+          ctx.fillText(etaText, rPos.x, rPos.y - 27);
+
+          if (t < 1 && order?.status === "out-for-delivery") t += 0.0005;
+          animRef.current = requestAnimationFrame(draw);
+        }
+        draw();
+        return () => cancelAnimationFrame(animRef.current);
+      }, [order, address]);
+
+      return <canvas ref={canvasRef} style={{ width: "100%", height: 280, borderRadius: 10, display: "block", background: "var(--color-background-secondary)" }} />;
+    }
+
+    function AddressForm({ userId, existing, onSave, onCancel }) {
+      const [form, setForm] = useState(existing || { userId, label: "Home", line1: "", line2: "", city: "Mumbai", pincode: "", deliveryNotes: "", isDefault: false, lat: 19.076 + (Math.random()-0.5)*0.1, lng: 72.877 + (Math.random()-0.5)*0.1 });
+      const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <label style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>Label</label>
+              <select value={form.label} onChange={e => set("label", e.target.value)} style={{ width: "100%" }}>
+                {["Home","Work","Other","Family","Friend"].map(l => <option key={l}>{l}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>City</label>
+              <select value={form.city} onChange={e => set("city", e.target.value)} style={{ width: "100%" }}>
+                {["Mumbai","Pune","Delhi","Bangalore","Hyderabad","Ahmedabad","Chennai"].map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>Address Line 1</label>
+            <input value={form.line1} onChange={e => set("line1", e.target.value)} placeholder="Flat/House no, Building name" style={{ width: "100%", boxSizing: "border-box" }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>Address Line 2</label>
+            <input value={form.line2} onChange={e => set("line2", e.target.value)} placeholder="Area / Locality / Landmark" style={{ width: "100%", boxSizing: "border-box" }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <label style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>Pincode</label>
+              <input value={form.pincode} onChange={e => set("pincode", e.target.value)} placeholder="400001" style={{ width: "100%", boxSizing: "border-box" }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "block", marginBottom: 4 }}>Delivery notes</label>
+              <input value={form.deliveryNotes} onChange={e => set("deliveryNotes", e.target.value)} placeholder="Ring bell, leave at door..." style={{ width: "100%", boxSizing: "border-box" }} />
+            </div>
+          </div>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+            <input type="checkbox" checked={form.isDefault} onChange={e => set("isDefault", e.target.checked)} />
+            Set as default delivery address
+          </label>
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+            <button onClick={onCancel}>Cancel</button>
+            <button onClick={() => onSave(form)} style={{ background: "#3b82f6", color: "#fff", border: "none" }}>Save address</button>
+          </div>
+        </div>
+      );
+    }
+
+    function AddressesPanel({ userId }) {
+      const [addresses, setAddresses] = useState(() => DB.getAddresses(userId));
+      const [adding, setAdding] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [selectedAddr, setSelectedAddr] = useState(null);
+
+      const reload = () => setAddresses(DB.getAddresses(userId));
+
+      const handleSave = (form) => {
+        if (editing) { DB.updateAddress(editing.id, form); }
+        else DB.addAddress(form);
+        reload(); setAdding(false); setEditing(null);
+      };
+      const handleDelete = (id) => { DB.deleteAddress(id); reload(); if (selectedAddr?.id === id) setSelectedAddr(null); };
+
+      const LABEL_ICONS = { Home: "🏠", Work: "💼", Other: "📍", Family: "👨‍👩‍👧", Friend: "👥" };
+
+      return (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ fontWeight: 500, fontSize: 15 }}>Saved addresses</span>
+              <button onClick={() => { setAdding(true); setEditing(null); }} style={{ background: "#3b82f6", color: "#fff", border: "none", padding: "6px 14px", borderRadius: 8, fontSize: 13 }}>+ Add new</button>
+            </div>
+            {(adding && !editing) && (
+              <div style={{ background: "var(--color-background-secondary)", borderRadius: 10, padding: 14, marginBottom: 12, border: "0.5px solid var(--color-border-secondary)" }}>
+                <AddressForm userId={userId} onSave={handleSave} onCancel={() => setAdding(false)} />
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {addresses.map(addr => (
+                <div key={addr.id} onClick={() => setSelectedAddr(addr)}
+                  style={{ background: selectedAddr?.id === addr.id ? "var(--color-background-info)" : "var(--color-background-primary)", border: `0.5px solid ${selectedAddr?.id === addr.id ? "var(--color-border-info)" : "var(--color-border-tertiary)"}`, borderRadius: 10, padding: "12px 14px", cursor: "pointer" }}>
+                  {editing?.id === addr.id ? (
+                    <AddressForm userId={userId} existing={addr} onSave={handleSave} onCancel={() => setEditing(null)} />
+                  ) : (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontSize: 18 }}>{LABEL_ICONS[addr.label] || "📍"}</span>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ fontWeight: 500, fontSize: 14 }}>{addr.label}</span>
+                              {addr.isDefault && <span style={{ fontSize: 11, background: "#e3f0fb", color: "#1565c0", borderRadius: 20, padding: "1px 8px" }}>Default</span>}
+                            </div>
+                            <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>{addr.line1}, {addr.line2}</div>
+                            <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{addr.city} – {addr.pincode}</div>
+                            {addr.deliveryNotes && <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 2 }}>📝 {addr.deliveryNotes}</div>}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={e => { e.stopPropagation(); setEditing(addr); setAdding(false); }} style={{ padding: "4px 10px", fontSize: 12 }}>Edit</button>
+                          <button onClick={e => { e.stopPropagation(); handleDelete(addr.id); }} style={{ padding: "4px 10px", fontSize: 12, color: "#b91c1c", border: "0.5px solid #fca5a5" }}>Del</button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+              {addresses.length === 0 && <div style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-tertiary)", fontSize: 13 }}>No addresses added yet</div>}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 12 }}>Delivery map preview</div>
+            {selectedAddr ? (
+              <>
+                <div style={{ background: "var(--color-background-secondary)", borderRadius: 10, padding: "10px 14px", marginBottom: 10, fontSize: 13 }}>
+                  <div style={{ fontWeight: 500 }}>{selectedAddr.label} — {selectedAddr.city}</div>
+                  <div style={{ color: "var(--color-text-secondary)", fontSize: 12, marginTop: 2 }}>{selectedAddr.line1}, {selectedAddr.line2}</div>
+                  <div style={{ display: "flex", gap: 12, marginTop: 6, fontSize: 12, color: "var(--color-text-secondary)" }}>
+                    <span>📍 Lat: {selectedAddr.lat.toFixed(4)}</span>
+                    <span>📍 Lng: {selectedAddr.lng.toFixed(4)}</span>
+                    <span>Est: ~{Math.floor(Math.random()*10+15)} mins</span>
+                  </div>
+                </div>
+                <MapCanvas order={{ status: "out-for-delivery", eta: "~22 mins" }} address={selectedAddr} />
+              </>
+            ) : (
+              <div style={{ background: "var(--color-background-secondary)", borderRadius: 10, height: 320, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-tertiary)", fontSize: 13 }}>
+                Select an address to preview delivery route
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function OrdersPanel({ onSelectOrder }) {
+      const [orders, setOrders] = useState(DB.getOrders());
+      const [filter, setFilter] = useState("all");
+
+      const filtered = filter === "all" ? orders : orders.filter(o => o.status === filter);
+
+      const updateStatus = (id, newStatus) => {
+        DB.updateOrderStatus(id, newStatus);
+        setOrders(DB.getOrders());
+      };
+
+      const nextStatus = { confirmed: "preparing", preparing: "out-for-delivery", "out-for-delivery": "delivered" };
+
+      return (
+        <div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+            {["all","confirmed","preparing","out-for-delivery","delivered","cancelled"].map(f => (
+              <button key={f} onClick={() => setFilter(f)} style={{ padding: "5px 14px", borderRadius: 20, fontSize: 12, background: filter===f ? "#3b82f6" : "var(--color-background-secondary)", color: filter===f ? "#fff" : "var(--color-text-secondary)", border: filter===f ? "none" : "0.5px solid var(--color-border-tertiary)" }}>
+                {f === "all" ? "All" : f.replace(/-/g," ")}
+              </button>
+            ))}
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: "0.5px solid var(--color-border-secondary)" }}>
+                  {["Order ID","Customer","Items","Total","Status","Time","Actions"].map(h => (
+                    <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontWeight: 500, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(o => (
+                  <tr key={o.id} style={{ borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+                    <td style={{ padding: "10px 10px", fontWeight: 500, color: "#3b82f6", cursor: "pointer" }} onClick={() => onSelectOrder(o)}>{o.id}</td>
+                    <td style={{ padding: "10px 10px" }}>{o.userName}</td>
+                    <td style={{ padding: "10px 10px", color: "var(--color-text-secondary)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.items}</td>
+                    <td style={{ padding: "10px 10px", fontWeight: 500 }}>₹{o.total}</td>
+                    <td style={{ padding: "10px 10px" }}><Badge status={o.status} /></td>
+                    <td style={{ padding: "10px 10px", color: "var(--color-text-secondary)", fontSize: 12 }}>{o.time.split(" ")[1]}</td>
+                    <td style={{ padding: "10px 10px" }}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={() => onSelectOrder(o)} style={{ padding: "3px 10px", fontSize: 11 }}>Track</button>
+                        {nextStatus[o.status] && (
+                          <button onClick={() => updateStatus(o.id, nextStatus[o.status])} style={{ padding: "3px 10px", fontSize: 11, background: "#3b82f6", color: "#fff", border: "none" }}>
+                            → {nextStatus[o.status].replace(/-/g," ")}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    function TrackingPanel({ order, onBack }) {
+      const steps = ["confirmed","preparing","out-for-delivery","delivered"];
+      const stepLabels = ["Order Confirmed","Preparing","Out for Delivery","Delivered"];
+      const stepIcons = ["✅","🍳","🛵","🏠"];
+      const currentStep = steps.indexOf(order.status);
+      const addr = DB.getAddresses().find(a => a.city && order.address.includes(a.city));
+
+      return (
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+            <button onClick={onBack} style={{ padding: "5px 12px", fontSize: 12 }}>← Back</button>
+            <span style={{ fontWeight: 500 }}>{order.id}</span>
+            <Badge status={order.status} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div>
+              <div style={{ background: "var(--color-background-secondary)", borderRadius: 10, padding: 14, marginBottom: 12 }}>
+                <div style={{ fontWeight: 500, marginBottom: 8 }}>Order details</div>
+                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
+                  <div><b style={{ color: "var(--color-text-primary)" }}>Customer:</b> {order.userName}</div>
+                  <div><b style={{ color: "var(--color-text-primary)" }}>Items:</b> {order.items}</div>
+                  <div><b style={{ color: "var(--color-text-primary)" }}>Address:</b> {order.address}</div>
+                  <div><b style={{ color: "var(--color-text-primary)" }}>Total:</b> ₹{order.total} ({order.payment})</div>
+                  <div><b style={{ color: "var(--color-text-primary)" }}>ETA:</b> {order.eta}</div>
+                </div>
+              </div>
+              <div style={{ background: "var(--color-background-secondary)", borderRadius: 10, padding: 14 }}>
+                <div style={{ fontWeight: 500, marginBottom: 12 }}>Delivery progress</div>
+                {steps.map((step, i) => (
+                  <div key={step} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <div style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, background: i <= currentStep ? "#3b82f6" : "var(--color-background-primary)", border: `0.5px solid ${i <= currentStep ? "#3b82f6" : "var(--color-border-tertiary)"}` }}>
+                        {i <= currentStep ? <span style={{ color: "#fff" }}>{stepIcons[i]}</span> : <span style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>{i+1}</span>}
+                      </div>
+                      {i < steps.length-1 && <div style={{ width: 1, height: 24, background: i < currentStep ? "#3b82f6" : "var(--color-border-tertiary)", margin: "2px 0" }} />}
+                    </div>
+                    <div style={{ paddingBottom: i < steps.length-1 ? 20 : 0 }}>
+                      <div style={{ fontWeight: i === currentStep ? 500 : 400, fontSize: 13, color: i <= currentStep ? "var(--color-text-primary)" : "var(--color-text-tertiary)" }}>{stepLabels[i]}</div>
+                      {i === currentStep && <div style={{ fontSize: 11, color: "#3b82f6", marginTop: 1 }}>Current status</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontWeight: 500, fontSize: 14, marginBottom: 10 }}>Live route map</div>
+              <MapCanvas order={order} address={addr} />
+              <div style={{ background: "var(--color-background-secondary)", borderRadius: 10, padding: "10px 14px", marginTop: 10, fontSize: 12 }}>
+                <div style={{ display: "flex", gap: 16 }}>
+                  <span>🟢 Restaurant</span>
+                  <span>🔴 Delivery address</span>
+                  <span>🔵 Rider position</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function UsersPanel({ onSelectUser }) {
+      const users = DB.getUsers();
+      return (
+        <div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ borderBottom: "0.5px solid var(--color-border-secondary)" }}>
+                {["User","Contact","Orders","Spent","Status","Addresses","Actions"].map(h => (
+                  <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontWeight: 500, color: "var(--color-text-secondary)" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(u => {
+                const addrCount = DB.getAddresses(u.id).length;
+                return (
+                  <tr key={u.id} style={{ borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+                    <td style={{ padding: "10px 10px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#e3f0fb", color: "#1565c0", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 500, fontSize: 13 }}>{u.name[0]}</div>
+                        <div>
+                          <div style={{ fontWeight: 500 }}>{u.name}</div>
+                          <div style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>Since {u.joined}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ padding: "10px 10px", color: "var(--color-text-secondary)", fontSize: 12 }}>{u.email}<br/>{u.phone}</td>
+                    <td style={{ padding: "10px 10px", fontWeight: 500 }}>{u.orders}</td>
+                    <td style={{ padding: "10px 10px", fontWeight: 500 }}>₹{u.spent.toLocaleString()}</td>
+                    <td style={{ padding: "10px 10px" }}><Badge status={u.status} /></td>
+                    <td style={{ padding: "10px 10px" }}>
+                      <span style={{ background: "var(--color-background-secondary)", borderRadius: 20, padding: "2px 10px", fontSize: 12 }}>{addrCount} saved</span>
+                    </td>
+                    <td style={{ padding: "10px 10px" }}>
+                      <button onClick={() => onSelectUser(u)} style={{ padding: "3px 10px", fontSize: 11 }}>Addresses</button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function RestaurantsPanel() {
+      const rests = DB.getRestaurants();
+      return (
+        <div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ borderBottom: "0.5px solid var(--color-border-secondary)" }}>
+                {["Restaurant","Cuisine","City","Rating","Orders","Revenue","Status"].map(h => (
+                  <th key={h} style={{ textAlign: "left", padding: "8px 10px", fontWeight: 500, color: "var(--color-text-secondary)" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rests.map(r => (
+                <tr key={r.id} style={{ borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+                  <td style={{ padding: "10px 10px", fontWeight: 500 }}>{r.name}</td>
+                  <td style={{ padding: "10px 10px", color: "var(--color-text-secondary)" }}>{r.cuisine}</td>
+                  <td style={{ padding: "10px 10px", color: "var(--color-text-secondary)" }}>{r.city}</td>
+                  <td style={{ padding: "10px 10px" }}>⭐ {r.rating}</td>
+                  <td style={{ padding: "10px 10px", fontWeight: 500 }}>{r.orders.toLocaleString()}</td>
+                  <td style={{ padding: "10px 10px", fontWeight: 500 }}>₹{r.revenue.toLocaleString()}</td>
+                  <td style={{ padding: "10px 10px" }}><Badge status={r.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function StatCard({ label, value, sub, color }) {
+      return (
+        <div style={{ background: "var(--color-background-secondary)", borderRadius: 10, padding: "14px 16px" }}>
+          <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 6 }}>{label}</div>
+          <div style={{ fontSize: 26, fontWeight: 500, color: color || "var(--color-text-primary)" }}>{value}</div>
+          {sub && <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginTop: 4 }}>{sub}</div>}
+        </div>
+      );
+    }
+
+    function AdminDashboard() {
+      const [tab, setTab] = useState("overview");
+      const [selectedOrder, setSelectedOrder] = useState(null);
+      const [selectedUser, setSelectedUser] = useState(null);
+      const stats = DB.getStats();
+
+      const TABS = [
+        { id: "overview", label: "Overview" },
+        { id: "orders", label: "Orders" },
+        { id: "users", label: "Users" },
+        { id: "addresses", label: "All Addresses" },
+        { id: "restaurants", label: "Restaurants" },
+      ];
+
+      const renderContent = () => {
+        if (selectedOrder) return <TrackingPanel order={selectedOrder} onBack={() => setSelectedOrder(null)} />;
+        if (selectedUser) return (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <button onClick={() => setSelectedUser(null)} style={{ padding: "5px 12px", fontSize: 12 }}>← Back</button>
+              <span style={{ fontWeight: 500 }}>Addresses for {selectedUser.name}</span>
+            </div>
+            <AddressesPanel userId={selectedUser.id} />
+          </div>
+        );
+
+        switch (tab) {
+          case "overview": return (
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+                <StatCard label="Total revenue" value={`₹${stats.totalRevenue.toLocaleString()}`} sub="All time delivered" color="#2d7a3a" />
+                <StatCard label="Today's orders" value={stats.todayOrders} sub="April 5, 2025" />
+                <StatCard label="Active users" value={stats.activeUsers} sub="incl. VIP members" color="#7c3aed" />
+                <StatCard label="Pending orders" value={stats.pendingOrders} sub="Avg delivery: 28 min" color="#b45309" />
+              </div>
+              <div style={{ fontWeight: 500, marginBottom: 10, fontSize: 15 }}>Recent orders</div>
+              <OrdersPanel onSelectOrder={o => { setSelectedOrder(o); }} />
+            </div>
+          );
+          case "orders": return <OrdersPanel onSelectOrder={setSelectedOrder} />;
+          case "users": return <UsersPanel onSelectUser={setSelectedUser} />;
+          case "addresses": return (
+            <div>
+              <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 12 }}>All saved addresses</div>
+              <AddressesPanel userId={null} />
+            </div>
+          );
+          case "restaurants": return <RestaurantsPanel />;
+          default: return null;
+        }
+      };
+
+      return (
+        <div style={{ fontFamily: "var(--font-sans)", padding: "1rem 0" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <div>
+              <div style={{ fontWeight: 500, fontSize: 22 }}>🐰 HungryHop Admin</div>
+              <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Dashboard · Orders · Addresses · Delivery tracking</div>
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <span style={{ background: "#e6f4ea", color: "#2d7a3a", borderRadius: 20, padding: "3px 12px", fontSize: 12 }}>● Live</span>
+              <span style={{ fontSize: 12, color: "var(--color-text-tertiary)", padding: "3px 0" }}>April 5, 2025</span>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 4, borderBottom: "0.5px solid var(--color-border-tertiary)", marginBottom: 20 }}>
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => { setTab(t.id); setSelectedOrder(null); setSelectedUser(null); }}
+                style={{ padding: "8px 16px", background: "none", border: "none", borderBottom: tab===t.id ? "2px solid #3b82f6" : "2px solid transparent", color: tab===t.id ? "#3b82f6" : "var(--color-text-secondary)", fontWeight: tab===t.id ? 500 : 400, fontSize: 13, cursor: "pointer", marginBottom: -1, borderRadius: 0 }}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {renderContent()}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<AdminDashboard />);
+  </script>
+</body>
+</html>

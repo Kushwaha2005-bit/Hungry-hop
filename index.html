@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hungry Hop – Order Food Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="animations.css"/>
+</head>
+<body>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <span class="logo-icon">🐰</span>
+        <span class="logo-text">Hungry<span class="accent">Hop</span></span>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#home"         class="nav-link active">Home</a></li>
+        <li><a href="#categories"   class="nav-link">Menu</a></li>
+        <li><a href="#restaurants"  class="nav-link">Restaurants</a></li>
+        <li><a href="#popular"      class="nav-link">Popular</a></li>
+        <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        <li><a href="#track-order"  class="nav-link">Track Order</a></li>
+        <li><a href="#testimonials" class="nav-link">Reviews</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+          <i class="fas fa-sun"></i>
+        </button>
+        <button class="btn-cart" onclick="toggleCart()">
+          <i class="fas fa-shopping-bag"></i>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </button>
+        <button class="btn-profile" id="profileBtn" onclick="showProfileModal()">
+          <i class="fas fa-user-circle"></i> Profile
+        </button>
+        <button class="btn-primary" onclick="showAuthModal()">Sign In</button>
+        <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-bg">
+      <div class="blob blob-1"></div><div class="blob blob-2"></div>
+      <div class="blob blob-3"></div><div class="blob blob-4"></div>
+      <div class="dots-grid"></div>
+    </div>
+    <div class="hero-container">
+      <div class="hero-content">
+        <div class="hero-tag animate-in delay-1">🚀 Fast Delivery in 30 mins</div>
+        <h1 class="hero-title animate-in delay-2">
+          Delicious Food<br/>
+          <span class="title-highlight">Delivered Fast</span><br/>
+          To Your Door
+        </h1>
+        <p class="hero-subtitle animate-in delay-3">
+          Explore hundreds of restaurants, discover new cuisines, and enjoy your favourite meals delivered hot and fresh every time.
+        </p>
+        <div class="hero-search animate-in delay-4">
+          <div class="search-box">
+            <i class="fas fa-map-marker-alt search-icon"></i>
+            <input type="text" placeholder="Enter your delivery address..." id="addressInput" />
+            <button class="btn-search" onclick="handleSearch()">Find Food</button>
+          </div>
+        </div>
+        <div class="hero-stats animate-in delay-5">
+          <div class="stat"><span class="stat-num">500+</span><span class="stat-label">Restaurants</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-num">50K+</span><span class="stat-label">Happy Customers</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-num">4.9★</span><span class="stat-label">App Rating</span></div>
+        </div>
+      </div>
+      <div class="hero-visual animate-in delay-3">
+        <div class="hero-card main-card">
+          <div class="card-glow"></div>
+          <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80" alt="Delicious Food" class="hero-food-img" />
+          <div class="floating-badge badge-1"><span class="badge-icon">⚡</span><div><strong>30 min</strong><small>Delivery</small></div></div>
+          <div class="floating-badge badge-2"><span class="badge-icon">⭐</span><div><strong>4.9/5</strong><small>Rating</small></div></div>
+          <div class="floating-badge badge-3"><span class="badge-icon">🎉</span><div><strong>Free</strong><small>First Order</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories" id="categories">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Browse By</span>
+        <h2 class="section-title">Food Categories</h2>
+        <p class="section-desc">Pick your cravings from our wide selection of cuisines</p>
+      </div>
+      <div class="category-grid" id="categoryGrid"></div>
+    </div>
+  </section>
+
+  <!-- Restaurants -->
+  <section class="restaurants-section" id="restaurants">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Near You</span>
+        <h2 class="section-title">Top Restaurants</h2>
+        <p class="section-desc">Handpicked restaurants with the best ratings and fastest delivery</p>
+      </div>
+      <div class="restaurant-grid" id="restaurantGrid"></div>
+    </div>
+  </section>
+
+  <!-- Popular Items -->
+  <section class="popular" id="popular">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Trending Now</span>
+        <h2 class="section-title">Most Popular</h2>
+        <p class="section-desc">Our customers' all-time favourite dishes</p>
+      </div>
+      <div class="filter-tabs" id="filterTabs"></div>
+
+      <!-- Diet + Sort Controls -->
+      <div class="food-controls">
+        <div class="diet-filters">
+          <button class="diet-btn active" data-diet="all"     onclick="setDietFilter('all')">🍽️ All</button>
+          <button class="diet-btn"        data-diet="veg"     onclick="setDietFilter('veg')">🌿 Veg</button>
+          <button class="diet-btn"        data-diet="non-veg" onclick="setDietFilter('non-veg')">🍗 Non-Veg</button>
+        </div>
+        <div class="sort-filters">
+          <button class="sort-btn active" data-sort="default"  onclick="setSortOrder('default')"><i class="fas fa-th-large"></i> Default</button>
+          <button class="sort-btn"        data-sort="low-high" onclick="setSortOrder('low-high')"><i class="fas fa-sort-amount-up"></i> Price ↑</button>
+          <button class="sort-btn"        data-sort="high-low" onclick="setSortOrder('high-low')"><i class="fas fa-sort-amount-down"></i> Price ↓</button>
+        </div>
+      </div>
+
+      <div class="food-grid" id="foodGrid"></div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Simple Steps</span>
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-desc">Ordering your favourite food is just 3 steps away</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-icon-wrap" style="--clr:#00E5FF"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="step-number">01</div>
+          <h3>Set Your Location</h3>
+          <p>Enter your delivery address and we'll find the best restaurants near you</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-card">
+          <div class="step-icon-wrap" style="--clr:#39FF14"><i class="fas fa-utensils"></i></div>
+          <div class="step-number">02</div>
+          <h3>Choose Your Food</h3>
+          <p>Browse menus, read reviews, and select your favourite dishes with ease</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-card">
+          <div class="step-icon-wrap" style="--clr:#FFD60A"><i class="fas fa-motorcycle"></i></div>
+          <div class="step-number">03</div>
+          <h3>Fast Delivery</h3>
+          <p>Track your order in real time and enjoy fresh food delivered to your door</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promo Banner -->
+  <section class="promo-banner">
+    <div class="promo-content">
+      <div class="promo-text">
+        <h2>Get 20% OFF Your First Order!</h2>
+        <p>Use code <strong>HOP20</strong> at checkout. Valid for new users only.</p>
+        <button class="btn-promo" onclick="applyPromo()">Claim Offer</button>
+      </div>
+      <div class="promo-img">🎁</div>
+    </div>
+  </section>
+
+  <!-- Order Tracking Section -->
+  <section class="tracking-section" id="track-order">
+    <div class="section-container">
+      <div class="section-header animate-in">
+        <span class="section-tag">Live Updates</span>
+        <h2 class="section-title">Track Your Order</h2>
+        <p class="section-desc">Enter your order ID to get real-time updates on your delivery</p>
+      </div>
+      <div class="track-input-wrap animate-in delay-1">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Enter order ID e.g. HH-2024-0042" id="trackOrderInput" />
+        <button class="btn-track" onclick="trackOrder()">Track Now</button>
+      </div>
+
+      <!-- Live Map Section -->
+      <div class="live-map-section" id="liveMapSection" style="display:none;">
+        <div class="live-map-header">
+          <div class="live-map-title"><span class="live-dot"></span> Live Rider Location</div>
+          <button class="btn-expand-map" onclick="showMapModal()"><i class="fas fa-expand"></i> Full Map</button>
+        </div>
+        <canvas id="mapCanvas" class="map-canvas"></canvas>
+        <div class="map-legend">
+          <span class="legend-item"><span class="legend-dot green"></span> Restaurant</span>
+          <span class="legend-item"><span class="legend-dot red"></span> Your Location</span>
+          <span class="legend-item"><span class="legend-dot cyan"></span> 🛵 Rider</span>
+        </div>
+      </div>
+
+      <div class="tracker-card" id="trackerCard">
+        <!-- Progress Steps -->
+        <div class="track-steps-wrap">
+          <div class="track-steps-row">
+            <div class="track-step" id="ts0">
+              <div class="track-step-icon"><i class="fas fa-check"></i></div>
+              <div class="track-step-label">Confirmed</div>
+              <div class="track-step-time" id="tt0">2:14 PM</div>
+            </div>
+            <div class="track-connector"><div class="progress-line" id="progressLine"></div></div>
+            <div class="track-step" id="ts1">
+              <div class="track-step-icon"><i class="fas fa-fire"></i></div>
+              <div class="track-step-label">Preparing</div>
+              <div class="track-step-time" id="tt1">2:20 PM</div>
+            </div>
+            <div class="track-connector"></div>
+            <div class="track-step" id="ts2">
+              <div class="track-step-icon"><i class="fas fa-motorcycle"></i></div>
+              <div class="track-step-label">On the way</div>
+              <div class="track-step-time" id="tt2">2:32 PM</div>
+            </div>
+            <div class="track-connector"></div>
+            <div class="track-step" id="ts3">
+              <div class="track-step-icon"><i class="fas fa-home"></i></div>
+              <div class="track-step-label">Delivered</div>
+              <div class="track-step-time" id="tt3">~2:50 PM</div>
+            </div>
+          </div>
+        </div>
+        <!-- Order Info -->
+        <div class="tracker-info-row">
+          <div class="tracker-info-box">
+            <div class="ti-label"><i class="fas fa-hashtag"></i> Order ID</div>
+            <div class="ti-value" id="displayOrderId">HH-2024-0042</div>
+          </div>
+          <div class="tracker-info-box">
+            <div class="ti-label"><i class="fas fa-clock"></i> ETA</div>
+            <div class="ti-value teal" id="etaText">ETA: 18 mins</div>
+          </div>
+          <div class="tracker-info-box">
+            <div class="ti-label"><i class="fas fa-box"></i> Items</div>
+            <div class="ti-value" id="trackerItems">3 items</div>
+          </div>
+          <div class="tracker-info-box">
+            <div class="ti-label"><i class="fas fa-rupee-sign"></i> Total</div>
+            <div class="ti-value teal" id="trackerTotal">₹687</div>
+          </div>
+          <div class="tracker-info-box">
+            <div class="ti-label"><i class="fas fa-road"></i> Distance</div>
+            <div class="ti-value" id="trackerDist">2.4 km</div>
+          </div>
+        </div>
+        <!-- Rider Strip -->
+        <div class="rider-strip">
+          <div class="rider-icon">🛵</div>
+          <img class="rider-avatar" src="https://i.pravatar.cc/100?img=15" alt="Rider" />
+          <div class="rider-info">
+            <div class="rider-name">Arjun Patil</div>
+            <div class="rider-sub">Your delivery partner</div>
+          </div>
+          <div class="rider-rating"><i class="fas fa-star"></i> 4.9 <small>(312 deliveries)</small></div>
+          <button class="btn-call-rider" onclick="showToast('Calling Arjun Patil... 📞', 'success')">
+            <i class="fas fa-phone"></i> Call
+          </button>
+          <button class="btn-call-rider" style="background:var(--grad-cyan);margin-left:0.5rem;" onclick="showMapModal()">
+            <i class="fas fa-map"></i> Map
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials" id="testimonials">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">What They Say</span>
+        <h2 class="section-title">Customer Reviews</h2>
+      </div>
+      <div class="testimonial-grid" id="testimonialGrid"></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="logo"><span class="logo-icon">🐰</span><span class="logo-text">Hungry<span class="accent">Hop</span></span></div>
+        <p>Bringing the best food from your favourite restaurants directly to your doorstep.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-facebook"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li><li><a href="#">Careers</a></li>
+          <li><a href="#">Blog</a></li><li><a href="#">Press</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li>
+          <li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+      <div class="footer-newsletter">
+        <h4>Stay Updated</h4>
+        <p>Subscribe for exclusive deals and new restaurant alerts.</p>
+        <div class="newsletter-form">
+          <input type="email" placeholder="Your email address" id="newsletterEmail"/>
+          <button onclick="subscribeNewsletter()"><i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 HungryHop. All rights reserved. Made with ❤️ for food lovers.</p>
+    </div>
+  </footer>
+
+  <!-- Cart Sidebar -->
+  <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h3>Your Order</h3>
+      <button onclick="toggleCart()" class="cart-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">
+        <div class="empty-icon">🛒</div>
+        <p>Your cart is empty</p>
+        <small>Add some delicious food!</small>
+      </div>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <div class="cart-summary">
+        <div class="summary-row"><span>Subtotal</span><span id="subtotalAmt">₹0</span></div>
+        <div class="summary-row"><span>Delivery Fee</span><span>₹40</span></div>
+        <div class="summary-row discount-row"><span>Discount</span><span id="discountAmt">-₹0</span></div>
+        <div class="summary-row total-row"><span>Total</span><span id="totalAmt">₹0</span></div>
+      </div>
+      <div class="promo-input">
+        <input type="text" placeholder="Enter promo code" id="promoInput" />
+        <button onclick="validatePromo()">Apply</button>
+      </div>
+      <!-- Payment Method -->
+      <div class="payment-section">
+        <div class="payment-label"><i class="fas fa-credit-card"></i> Payment Method</div>
+        <div class="payment-options">
+          <button class="payment-option active" data-method="online" onclick="setPaymentMethod('online')">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Online</span>
+            <small>UPI / Card / Net Banking</small>
+          </button>
+          <button class="payment-option" data-method="cod" onclick="setPaymentMethod('cod')">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Cash on Delivery</span>
+            <small>Pay when order arrives</small>
+          </button>
+        </div>
+      </div>
+      <button class="btn-checkout" onclick="checkout()">Proceed to Checkout</button>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="authOverlay" onclick="closeAuthModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchTab('login')">Sign In</button>
+        <button class="modal-tab" onclick="switchTab('register')">Register</button>
+      </div>
+      <div class="modal-body" id="loginForm">
+        <h3>Welcome Back! 👋</h3>
+        <div class="form-group"><label>Email</label><input type="email" placeholder="you@example.com" /></div>
+        <div class="form-group"><label>Password</label><input type="password" placeholder="••••••••" /></div>
+        <button class="btn-modal-submit" onclick="handleLogin()">Sign In</button>
+        <p class="modal-footer-text">Don't have an account? <a href="#" onclick="switchTab('register')">Register</a></p>
+      </div>
+      <div class="modal-body" id="registerForm" style="display:none">
+        <h3>Create Account 🎉</h3>
+        <div class="form-group"><label>Full Name</label><input type="text" placeholder="John Doe" /></div>
+        <div class="form-group"><label>Email</label><input type="email" placeholder="you@example.com" /></div>
+        <div class="form-group"><label>Phone</label><input type="tel" placeholder="+91 98765 43210" /></div>
+        <div class="form-group"><label>Password</label><input type="password" placeholder="••••••••" /></div>
+        <button class="btn-modal-submit" onclick="handleRegister()">Create Account</button>
+        <p class="modal-footer-text">Already have an account? <a href="#" onclick="switchTab('login')">Sign In</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div class="modal-overlay" id="profileOverlay" onclick="closeProfileModal()">
+    <div class="modal profile-modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeProfileModal()"><i class="fas fa-times"></i></button>
+      <div class="profile-header">
+        <div class="profile-avatar" id="profileAvatar">👤</div>
+        <div>
+          <h3 class="profile-title">My Profile</h3>
+          <p class="profile-subtitle">Manage your account details</p>
+        </div>
+      </div>
+      <div class="modal-body" style="margin-top:0">
+        <div class="form-group"><label>Full Name</label><input type="text" id="profileName" placeholder="Your full name" /></div>
+        <div class="form-group"><label>Email</label><input type="email" id="profileEmail" placeholder="you@example.com" /></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="profilePhone" placeholder="+91 98765 43210" /></div>
+        <div class="form-group"><label>Delivery Address</label><input type="text" id="profileAddr" placeholder="Your default address" /></div>
+        <button class="btn-modal-submit" onclick="saveProfile()"><i class="fas fa-save"></i> Save Profile</button>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat"><span class="ps-num">12</span><span class="ps-label">Orders</span></div>
+        <div class="profile-stat"><span class="ps-num">4.8★</span><span class="ps-label">Rating</span></div>
+        <div class="profile-stat"><span class="ps-num">320</span><span class="ps-label">Points</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Map Modal -->
+  <div class="modal-overlay" id="mapOverlay" onclick="closeMapModal()">
+    <div class="map-modal" onclick="event.stopPropagation()">
+      <div class="map-modal-header">
+        <div class="live-map-title"><span class="live-dot"></span> Live Rider Tracking</div>
+        <button class="modal-close" onclick="closeMapModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <canvas id="mapCanvasBig" class="map-canvas-big"></canvas>
+      <div class="map-modal-footer">
+        <div class="map-rider-info">
+          <img src="https://i.pravatar.cc/100?img=15" alt="Rider" class="rider-avatar"/>
+          <div>
+            <div class="rider-name">Arjun Patil <span class="rider-badge">⭐ 4.9</span></div>
+            <div class="rider-sub">On the way to your location</div>
+          </div>
+        </div>
+        <button class="btn-call-rider" onclick="showToast('Calling Arjun Patil... 📞','success')">
+          <i class="fas fa-phone"></i> Call Rider
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successOverlay">
+    <div class="modal success-modal" onclick="event.stopPropagation()">
+      <div class="success-icon">🎉</div>
+      <h3>Order Placed!</h3>
+      <p>Your order is being prepared. Live tracking below.</p>
+      <div class="success-order-info">
+        <div class="success-info-row">
+          <span class="success-info-label"><i class="fas fa-hashtag"></i> Tracking ID</span>
+          <span class="success-info-val tracking-id" id="successTrackingId">HH-2024-0000</span>
+        </div>
+        <div class="success-info-row">
+          <span class="success-info-label"><i class="fas fa-wallet"></i> Payment</span>
+          <span class="success-info-val" id="successPaymentMethod">💳 Online Payment</span>
+        </div>
+      </div>
+      <div class="modal-eta-badge"><i class="fas fa-clock"></i> Estimated arrival: <strong>25–35 mins</strong></div>
+      <div class="modal-tracker">
+        <div class="modal-track-steps" id="modalTrackSteps">
+          <div class="modal-progress-line" id="modalProgressLine"></div>
+          <div class="modal-track-step" id="mts0"><div class="modal-step-icon"><i class="fas fa-check"></i></div><div class="modal-step-label">Confirmed</div></div>
+          <div class="modal-track-step" id="mts1"><div class="modal-step-icon"><i class="fas fa-fire"></i></div><div class="modal-step-label">Preparing</div></div>
+          <div class="modal-track-step" id="mts2"><div class="modal-step-icon"><i class="fas fa-motorcycle"></i></div><div class="modal-step-label">On the way</div></div>
+          <div class="modal-track-step" id="mts3"><div class="modal-step-icon"><i class="fas fa-home"></i></div><div class="modal-step-label">Delivered</div></div>
+        </div>
+      </div>
+      <button class="btn-modal-submit" onclick="goToTrackSection()"><i class="fas fa-map-marker-alt"></i> Full Tracking Page</button>
+      <p style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-muted);cursor:pointer;" onclick="closeSuccess()">Close</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="main.js?v=5"></script>
+</body>
+</html>
